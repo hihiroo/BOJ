@@ -1,4 +1,4 @@
-//정수게임
+// 정수게임
 
 #include<bits/stdc++.h>
 using namespace std;
