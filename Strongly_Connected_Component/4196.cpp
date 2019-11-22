@@ -6,7 +6,7 @@ using namespace std;
 
 vector<vector<int> > v(100005);
 int visited[100005], n, m, cnt_component, num;
-int finished[10005], indegree[100005];
+int finished[100005], indegree[100005];
 stack <int> s;
 
 int scc(int vtx){
