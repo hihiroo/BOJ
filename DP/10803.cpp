@@ -15,29 +15,38 @@ int dp[10005][105];
 
 int f(int n, int m)
 {
+    if (n < m)
+        swap(n, m);
     if (n <= 0 || m <= 0)
-        return 0;
-    if (max(n, m) % min(n, m) == 0)
-        return max(n, m) / min(n, m);
-    if (dp[n][m])
+        return 10000000;
+    if (dp[n][m] != -1)
         return dp[n][m];
+    if (n % m == 0)
+        return n / m;
 
-    dp[n][m] = 100000000;
-    for (int i = 1; i <= min(n, m); i++)
+    dp[n][m] = 10000000;
+    if (n >= m * 3)
     {
-        dp[n][m] = min(dp[n][m], 1 + f(n - i, i) + f(n, m - i));
-        dp[n][m] = min(dp[n][m], 1 + f(n - i, m) + f(i, m - i));
+        dp[n][m] = f(n - m, m) + 1;
+        return dp[n][m];
     }
 
-    printf("%d %d %d\n", n, m, dp[n][m]);
+    for (int i = 1; i <= max(n, m) / 2; i++)
+    {
+        if (i <= m / 2)
+            dp[n][m] = min(dp[n][m], f(n, m - i) + f(n, i));
+        if (i <= n / 2)
+            dp[n][m] = min(dp[n][m], f(i, m) + f(n - i, m));
+    }
+
     return dp[n][m];
 }
 
 int main()
 {
+    memset(dp, -1, sizeof(dp));
     int n, m;
     cin >> n >> m;
     cout << f(n, m);
 }
-
 
