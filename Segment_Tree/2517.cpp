@@ -1,4 +1,3 @@
-//달리기
 #include <bits/stdc++.h>
 using namespace std;
 #define pb push_back
@@ -8,8 +7,9 @@ using namespace std;
 #define fst first
 #define snd second
 
-
-int size, arr[2000005], q[500000], s[500000];
+int size, arr[2000005], q[500000];
+map<int,int> hasing;
+vector<int> v;
 
 void update(int idx){
     arr[idx]++;
@@ -30,26 +30,25 @@ int main(){
     int n, lv=1;
     cin>>n;
 
-    while(size < n){
+    for(int i=0; i<n; i++){
+        scanf("%d",&q[i]);
+        v.pb(q[i]);
+    }
+
+    sort(v.begin(),v.end());
+    v.erase(unique(v.begin(), v.end()),v.end());
+
+    int cnt = v.size();
+    for(int i=0; i<cnt; i++)
+        hasing[v[i]] = i+1;
+
+    while(size < cnt){
         size += lv;
         lv *= 2;
     }
 
-    map<int,int> hasing;
     for(int i=0; i<n; i++){
-        scanf("%d",&q[i]);
-        s[i] = q[i];
-    }
-    sort(s,s+n);
-
-    int cnt = 0;
-    for(int i=0; i<n; i++){
-        if(hasing[s[i]]) continue;
-        hasing[s[i]] = ++cnt;
-    }
-
-    for(int i=0; i<n; i++){
-        printf("%d\n",f(hasing[q[i]],n,1,1,size+1)+1);
+        printf("%d\n",f(hasing[q[i]],cnt,1,1,size+1)+1);
         update(size+hasing[q[i]]);
     }
 }
