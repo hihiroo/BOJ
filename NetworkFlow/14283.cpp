@@ -69,7 +69,7 @@ int main(){
             memset(f,0,sizeof(f));
             int e = v[i][j].fst, cost = v[i][j].snd;
             c[i][e] -= cost, c[e][i] -= cost;
-            if(ori-cost == flow(s,t)) ans = max(ans,cost);
+            ans = max(ans,ori-flow(s,t));
             c[i][e] += cost, c[e][i] += cost;
         }
     }
