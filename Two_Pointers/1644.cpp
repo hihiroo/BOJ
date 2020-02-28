@@ -8,40 +8,25 @@ using namespace std;
 #define fst first
 #define snd second
 
-vector <int> prime;
-bool chk[4000000];
+int p[4000005];
+vector<int> v;
 
-int main()
-{
-   int N; cin >> N;
-   for(int i = 2; i <= N; i++)
-      if(chk[i] == 0)
-      {
-         for(int j = i*i; j <= N; j += i)
-            chk[j] = 1;
-      }
+int main(){
+    for(int i=2; i<=4000000; i++){
+        if(p[i]) continue;
+        v.pb(i);
+        for(int j=2; i*j<=4000000; j++)
+            p[i*j] = 1;
+    }
 
-   for(int i = 2; i <= N; i++)
-      if(chk[i] == 0) prime.push_back(i);
+    int n, cnt=0, sum=0, s=0, e=0;
+    cin>>n;
 
-   // for(int i = 0; i < prime.size(); i++)
-   // {
-   //    cout << prime[i] << ' ';
-   // }
-   int s = 0;
-   int cnt = 0;
-
-   while(prime[s] <= N)
-   {
-      int i = s;
-      int sum = 0;
-      while(sum < N){
-         sum += prime[i++];
-         cout << sum << ' ';
-      }
-      cout << '\n';
-      if(sum == N) cnt++;
-      s++;
-   }
-   cout << cnt;
+    while(1){
+        if(sum >= n) sum -= v[s++];
+        else if(e == v.size()) break;
+        else if(sum < n) sum += v[e++];
+        if(sum == n) cnt++;
+    }
+    cout<<cnt;
 }
