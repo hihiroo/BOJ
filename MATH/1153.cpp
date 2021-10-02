@@ -10,7 +10,6 @@ using namespace std;
 
 int chk[1000005];
 vector<int> v;
-vector<vector<int> > ans(1000001);
 
 int main(){
     for(int i=2; i<=1000000; i++){
@@ -19,19 +18,21 @@ int main(){
         for(int j=2; i*j<=1000000; j++) chk[i*j] = 1;
     }
 
-    for(int i=0; i<168; i++)
-        for(int j=i; j<168; j++)
-            for(int k=j; k<168; k++)
-                ans[v[i]+v[j]+v[k]].pb(v[i]),ans[v[i]+v[j]+v[k]].pb(v[j]),ans[v[i]+v[j]+v[k]].pb(v[k]);
-
     int n;
     cin >> n;
 
-    for(int i=0; v[i]<n; i++){
-        if(ans[n-v[i]].size()){
-            cout << v[i] << " " << ans[n-v[i]][0] << " " << ans[n-v[i]][1] << " " << ans[n-v[i]][2];
-            return 0;
-        }
+    if(n < 8) return cout << -1,0;
+    if(n%2){
+        cout << "2 3 ";
+        n -= 5;
     }
-    cout << -1;
+    else{
+        cout << "2 2 ";
+        n -= 4;
+    }
+
+    for(int i=0; i<v.size(); i++){
+        if(chk[n-v[i]]) continue;
+        return cout << v[i] << " " << n-v[i],0;
+    }
 }
