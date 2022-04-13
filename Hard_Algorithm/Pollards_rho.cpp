@@ -7,12 +7,16 @@ namespace Miller_Rabin{
     vector<lli> A = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
     /*
         return a^b mod m
+        res = a^(2^0*b0 + 2^1*b1 + 2^2*b2 ...)
     */
     lli pow(lli a, lli b, lli m){
-        if(b == 0) return 1;
-        if(b % 2) return (a * pow(a, b-1, m)) % m;
-        lli tmp = pow(a, b/2, m);
-        return (tmp*tmp) % m;
+       lli res = 1;
+       while(b > 0){
+           if(b & 1) res = (a*res) % m;
+           a = (a*a) % m;
+           b = b >> 1;
+       }
+       return res;
     }
     /*
         ai로 n이 합성수인지 테스트
@@ -65,8 +69,13 @@ struct Pollards_rho{
     }
 
     lli gcd(lli a, lli b){
-        if(b == 0) return a;
-        return gcd(b, a%b);
+        if(a < b) swap(a, b);
+        while(b){
+            lli tmp = a % b;
+            a = b;
+            b = tmp;
+        }
+        return a;
     }
 
     lli rho(lli n){
