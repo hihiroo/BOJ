@@ -3,29 +3,39 @@ using namespace std;
 #define lli long long
 #define pb push_back
 
-struct Pollards_rho{
-    vector<lli> prime_factor;
+namespace Miller_Rabin{
     vector<lli> A = {2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37};
-
-    void init(lli n){
-        while(n > 1){
-           lli tmp = rho(n);
-           prime_factor.pb(n);
-           n /= tmp;
-        }
-        sort(prime_factor.begin(), prime_factor.end());
+    /*
+        return a^b mod m
+    */
+    lli pow(lli a, lli b, lli m){
+        if(b == 0) return 1;
+        if(b % 2) return (a * pow(a, b-1, m)) % m;
+        lli tmp = pow(a, b/2, m);
+        return (tmp*tmp) % m;
     }
+    /*
+        ai로 n이 합성수인지 테스트
+        합성수이면 1, 아니면 0 return
+    */
+    bool isComposite(lli ai, lli q, lli k, lli n){
+        lli tmp = pow(ai, q, n); // tmp = ai^q mod n
 
-    void get_factor(){
-        for(int i=0; i<prime_factor.size(); i++){
-            cout << prime_factor[i] << '\n';
+        // ai^q mod n이 1이 아니고,
+        // 0~k 사이의 자연수 i에 대해 ai^(2^iq) mod n이 n-1이 아니면 합성수
+        if(tmp == 1 || tmp == n-1) return 0;
+
+        for(int i=1; i<k; i++){
+            tmp *= tmp;
+            tmp %= n;
+            if(tmp == n-1) return 0;
         }
+        return 1;
     }
-
     /*  Deterministic Miller-Rabin (n < 2^64)
         return 1 if n is prime, 0 otherwise
     */
-    bool miller_rabin(lli n){
+    bool isPrime(lli n){
         if(n == 2 || n == 3) return 1;
         if(n < 2 || n % 2 == 0) return 0;
 
@@ -44,44 +54,22 @@ struct Pollards_rho{
         }
         return 1;
     }
+}
 
-    /*
-        ai로 n이 합성수인지 테스트
-        합성수이면 1, 아니면 0 return
-    */
-    bool isComposite(lli ai, lli q, lli k, lli n){
-        lli tmp = 1; // tmp = ai^q mod n
-        while(q > 0){
-            if(q % 2) tmp = (tmp*ai) % n;
-            tmp *= tmp;
-            tmp %= n;
-            q /= 2; 
-        }
-        // ai^q mod n 은 1이 아니고,
-        // 0~k 사이의 자연수 i에 대해 ai^(2^iq) mod n이 n-1이 아니면 합성수
-        if(tmp == 1 || tmp == n-1) return 0;
+struct Pollards_rho{
+    vector<lli> prime_factor;
 
-        for(int i=1; i<k; i++){
-            tmp *= tmp;
-            tmp %= n;
-            if(tmp == n-1) return 0;
-        }
-        return 1;
+    void init(lli n){
+        factorize(n);
+        sort(prime_factor.begin(), prime_factor.end());
     }
 
     lli gcd(lli a, lli b){
-        if(a < b) swap(a, b);
-        while(b != 0){
-            lli tmp = a%b;
-            a = b;
-            b = tmp;
-        }
-        return a;
+        if(b == 0) return a;
+        return gcd(b, a%b);
     }
 
     lli rho(lli n){
-        if(miller_rabin(n)) return n;
-
         lli x, y, c, g = 1;
         x = y = rand() % (n-2) + 2;
         c = rand() % 10 + 1;
@@ -95,7 +83,21 @@ struct Pollards_rho{
             // 즉, y % p == x % p로 사이클 생김
             // birthday paradox에 의해 사이클을 찾는 시간복잡도는 O(sqrt(p))
         }
-        return rho(g);
+        return g;
+    }
+
+    void factorize(lli n){
+        while(n % 2 == 0){
+            prime_factor.pb(2);
+            n /= 2;
+        }
+        if(n == 1) return;
+        if(Miller_Rabin::isPrime(n)){
+            prime_factor.pb(n);
+            return;
+        }
+        lli tmp = rho(n);
+        factorize(tmp), factorize(n/tmp);
     }
 };
 
@@ -107,5 +109,7 @@ int main(){
 
     Pollards_rho a;
     a.init(n);
-    a.get_factor();
+    for(int i=0; i<a.prime_factor.size(); i++){
+        cout << a.prime_factor[i] << '\n';
+    }
 }
