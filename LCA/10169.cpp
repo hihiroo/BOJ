@@ -8,16 +8,16 @@ using namespace std;
 #define pb push_back
 #define mp make_pair
 
-struct T{
+struct Union{
     vector<int> root;
-    T(int n): root(n+1){
+    Union(int n): root(n+1){
         for(int i=1; i<=n; i++) root[i] = i;
     }
     int find(int n){
         if(root[n] == n) return n;
         return root[n] = find(root[n]);
     }
-    void merge(int a, int b){
+    void merge(int a, int b){ // b의 루트 밑에 a의 루트 연결
         int r1 = find(a), r2 = find(b);
         root[r1] = r2;
     }
@@ -26,27 +26,32 @@ struct T{
     }
 };
 
-vector<vector<pair<int,lli> > > mst(100005), notMST(100005);
-vector<vector<pair<lli,int> > > poss(100005);
+struct E{
+    int a, b, id;
+    lli c;
+    bool isMST;
+};
+
+vector<vector<pair<int,lli> > > mst(100005);
 int depth[100005], par[100005][20];
 
 void dfs(int vtx){
     for(int i=0; i<mst[vtx].size(); i++){
         int next = mst[vtx][i].fst;
+
         if(!par[next][0]){
-            par[next][0] = vtx;
             depth[next] = depth[vtx] + 1;
+            par[next][0] = vtx;
             dfs(next);
         }
     }
 }
 
 void lca_init(int n){
-    par[1][0] = 1;
-    dfs(1);
+    par[1][0] = 1, dfs(1);
 
-    for(int i=1; i<=n; i++){
-        for(int j=1; j<20; j++){
+    for(int j=1; j<20; j++){
+        for(int i=1; i<=n; i++){
             int tmp = par[i][j-1];
             par[i][j] = par[tmp][j-1];
         }
@@ -58,7 +63,7 @@ int lca(int a, int b){
     int gap = depth[a] - depth[b];
 
     for(int i=0; (1<<i)<=gap; i++){
-        if(gap & (1<<i)) a = par[a][i];
+        if((1<<i)&gap) a = par[a][i];
     }
     if(a == b) return a;
 
@@ -69,81 +74,72 @@ int lca(int a, int b){
     return par[a][0];
 }
 
-void find_new(int vtx){
-    for(int i=0; i<mst[vtx].size(); i++){
-        int next = mst[vtx][i].fst;
-
-        if(depth[vtx] < depth[next]){
-            find_new(next);
-            for(int j=0; j<poss[next].size(); j++){
-                if(poss[next][j].snd != vtx) poss[vtx].pb(poss[next][j]);
-            }
-        }
-    }
-    sort(poss[vtx].begin(), poss[vtx].end());
-}
-
 int main(){
     cinFast();
 
     int n, m;
     cin >> n >> m;
 
-    priority_queue<pair<lli,pair<int,int> > > pq;
-    queue<pair<int,pair<int,lli> > > q;
+    priority_queue<pair<lli,int> > pq;
+    vector<E> edge(m);
+
     for(int i=0; i<m; i++){
-        int a, b;
-        lli c;
-        cin >> a >> b >> c;
-        pq.push(mp(-c,mp(a,b)));
-        q.push(mp(a,mp(b,c)));
+        cin >> edge[i].a >> edge[i].b >> edge[i].c;
+        edge[i].id = i;
+        pq.push(mp(-edge[i].c,i));
     }
 
-    T tree(n);
-    map<pair<int,pair<int,lli> >, bool> isInMST;
-    lli sum = 0;
+    Union tree(n);
+    vector<pair<lli,int> > notMST;
 
+    lli sum = 0;
     while(!pq.empty()){
-        int a = pq.top().snd.fst;
-        int b = pq.top().snd.snd;
-        lli c = -pq.top().fst;
+        int id = pq.top().snd;
+        int a = edge[id].a, b = edge[id].b;
+        lli c = edge[id].c;
         pq.pop();
 
         if(tree.connected(a,b)){
-            notMST[a].pb(mp(b,c));
+            edge[id].isMST = 0;
+            notMST.pb(mp(c,id));
             continue;
         }
         tree.merge(a,b);
-        sum += c, isInMST[mp(a,mp(b,c))] = 1;
-        mst[a].pb(mp(b,c));
-        mst[b].pb(mp(a,c));
+        sum += c, edge[id].isMST = 1;
+        mst[a].pb(mp(b,c)), mst[b].pb(mp(a,c));
     }
 
     lca_init(n);
+    sort(notMST.begin(), notMST.end());
+    Union replaced(n);
+    vector<int> ans(n+1,-1);
 
-    for(int i=1; i<=n; i++){
-        for(int j=0; j<notMST[i].size(); j++){
-            int vtx = notMST[i][j].fst;
-            lli c = notMST[i][j].snd;
+    for(int i=0; i<notMST.size(); i++){
+        int id = notMST[i].snd;
+        int a = edge[id].a, b = edge[id].b;
+        lli c = edge[id].c;
 
-            int r = lca(i,vtx);
-            if(i != r) poss[i].pb(mp(c,r));
-            if(vtx != r) poss[vtx].pb(mp(c,r));
+        int r = lca(a,b);
+        while(1){
+            a = replaced.find(a);
+            if(depth[a] <= depth[r]) break;
+            ans[a] = c;
+            replaced.merge(a,par[a][0]);
+        }
+        while(1){
+            b = replaced.find(b);
+            if(depth[b] <= depth[r]) break;
+            ans[b] = c;
+            replaced.merge(b,par[b][0]);
         }
     }
-
-    find_new(1);
-
-    while(!q.empty()){
-        int a = q.front().fst;
-        int b = q.front().snd.fst;
-        lli c = q.front().snd.snd;
-        q.pop();
-
-        if(isInMST[mp(a,mp(b,c))]){
+    for(int i=0; i<m; i++){
+        if(edge[i].isMST){
+            int a = edge[i].a, b = edge[i].b;
             if(depth[a] < depth[b]) swap(a,b);
-            if(poss[a].empty()) cout << -1 << '\n';
-            else cout << sum - c + poss[a][0].fst << '\n';
+
+            if(ans[a] == -1) cout << -1 << '\n';
+            else cout << sum - edge[i].c + ans[a] << '\n';
         }
         else cout << sum << '\n';
     }
