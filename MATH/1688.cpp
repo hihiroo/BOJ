@@ -47,14 +47,10 @@ int main(){
         int cross = 0, online = 0;
         for(int j=0; j<n && !online; j++){
             online = isCross(v[j], v[j+1], friends, friends);
-            if(isCross(v[j], v[j+1], friends, {1e9+1, friends.y})){
-                cross++;
-                if(v[j].y == v[j+1].y) cross++;
-            }
+            if(isCross(v[j], v[j+1], friends, {1e9+1, friends.y+1})) cross++;
         }
 
         if(online) cout << 1 << '\n';
-        else cout << cross << '\n';
+        else cout << cross%2 << '\n';
     }
 }
-
